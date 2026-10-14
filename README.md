@@ -191,6 +191,11 @@ macOS 那一列是本机实测过的，Windows 那一列按官方文档与 Power
 **已实测可用**：`hermes skills check`（报告 `update_available`）→ `hermes skills update`
 （把新增的引用文件、脚本一起装上）。
 
+**装的时候提示 GitHub API 限流 / 说"没有可用更新"？** GitHub 对**未认证**调用只给 60 次/小时。
+装好 `gh` 并 `gh auth login`（Hermes 会用它），或把 `GITHUB_TOKEN` 写进 `~/.hermes/.env`，就能放宽到 5000 次/小时。
+限流时安装脚本会自动**退回本地拷贝**——内容与仓库逐字节一致，功能不受影响，
+只是那种装法不能用 `hermes skills update` 自动更新（重跑脚本即可）。
+
 ---
 
 ## 致谢与许可

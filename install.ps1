@@ -116,7 +116,9 @@ if (-not $NoHermes) {
       $out = & hermes skills install "$Owner/$Repo/skills/$SkillName" -y --force --category autonomous-ai-agents 2>&1
       if ($LASTEXITCODE -eq 0) { Ok "Hermes skill 已安装（来源：$Owner/$Repo）" }
       else {
-        Warn "经 skills tap 安装失败，改用本地拷贝"
+        Warn "经 skills tap 安装失败，改用本地拷贝（内容与仓库一致，功能不受影响）"
+        Warn "常见原因：GitHub API 未认证限流（60 次/小时）。想走可更新的 skills tap，"
+        Warn "  就装好 gh 并 gh auth login，或把 GITHUB_TOKEN 写进 `$HOME\.hermes\.env 后重跑本脚本。"
         $dst = Join-Path $HOME ".hermes\skills\autonomous-ai-agents\$SkillName"
         Run New-Item -ItemType Directory -Force -Path (Split-Path $dst) | Out-Null
         Backup-IfDiffers -Dst $dst

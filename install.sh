@@ -115,7 +115,9 @@ if [ "$DO_HERMES" = 1 ] && command -v hermes >/dev/null; then
     if hermes skills install "${OWNER}/${REPO}/skills/${SKILL_NAME}" -y --force --category autonomous-ai-agents 2>&1 | tail -4; then
       ok "Hermes skill 已安装（来源：${OWNER}/${REPO}）"
     else
-      warn "经 skills tap 安装失败，改用本地拷贝"
+      warn "经 skills tap 安装失败，改用本地拷贝（内容与仓库一致，功能不受影响）"
+      warn "常见原因：GitHub API 未认证限流（60 次/小时）。想走可更新的 skills tap，"
+      warn "  就装好 gh 并 gh auth login，或把 GITHUB_TOKEN 写进 \$HERMES_HOME/.env 后重跑本脚本。"
       dst="$HERMES_HOME/skills/autonomous-ai-agents/$SKILL_NAME"
       mkdir -p "$(dirname "$dst")"; backup_if_differs "$dst"; rm -rf "$dst"
       cp -R "$REPO_DIR/skills/$SKILL_NAME" "$dst"; ok "Hermes skill → $dst"
