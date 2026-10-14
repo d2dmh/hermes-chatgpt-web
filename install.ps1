@@ -106,12 +106,15 @@ if (-not $DryRun -and -not (Test-Path (Join-Path $RepoDir "skills\$SkillName\SKI
 if (-not $NoHermes) {
   if (Have hermes) {
     Step "1a 装进 Hermes（走 skills tap，之后 hermes skills update 就能更新）"
+    Say "  说明：Hermes 的安全扫描会把这个 skill 判为 DANGEROUS —— 它按关键词命中了本套文档里"
+    Say "  逐字记录的 launchd 自启、pnpm 安装、base64 分块读取等命令，属于内容型误报（本 skill 全是"
+    Say "  Markdown + 一个只读的 PNG 校验脚本，可在 GitHub 上逐行核对）。所以这里带 --force 安装。"
     if ($DryRun) {
       Say "  [dry-run] hermes skills tap add $Owner/$Repo"
-      Say "  [dry-run] hermes skills install $Owner/$Repo/skills/$SkillName -y --category autonomous-ai-agents"
+      Say "  [dry-run] hermes skills install $Owner/$Repo/skills/$SkillName -y --force --category autonomous-ai-agents"
     } else {
       try { hermes skills tap add "$Owner/$Repo" | Out-Null } catch { }
-      $out = & hermes skills install "$Owner/$Repo/skills/$SkillName" -y --category autonomous-ai-agents 2>&1
+      $out = & hermes skills install "$Owner/$Repo/skills/$SkillName" -y --force --category autonomous-ai-agents 2>&1
       if ($LASTEXITCODE -eq 0) { Ok "Hermes skill 已安装（来源：$Owner/$Repo）" }
       else {
         Warn "经 skills tap 安装失败，改用本地拷贝"

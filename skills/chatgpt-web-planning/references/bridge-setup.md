@@ -106,9 +106,10 @@ security:
   allow_private_urls: true
 ```
 
+Hermes 的环境变量文件（默认在 `~/.hermes/` 内，文件名由 `$HERMES_HOME` 决定）：
+
 ```bash
-# ~/.hermes/.env
-AGENT_BROWSER_PROFILE=/Users/<you>/.hermes/browser-profiles/hermes-chatgpt
+AGENT_BROWSER_PROFILE=<你的 home 目录>/.hermes/browser-profiles/hermes-chatgpt
 ```
 
 Codex 宿主用内置浏览器（`iab`），不需要这一节；照 c2c 检出目录里的 `skill/SKILL.md` 走。

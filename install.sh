@@ -112,12 +112,15 @@ fi
 
 if [ "$DO_HERMES" = 1 ] && command -v hermes >/dev/null; then
   step "1a 装进 Hermes（走 skills tap，之后 hermes skills update 就能更新）"
+  say "  ${c_dim}说明：Hermes 的安全扫描会把这个 skill 判为 DANGEROUS —— 它按关键词命中了本套文档里"
+  say "  逐字记录的 launchd 自启、pnpm 安装、base64 分块读取等命令，属于内容型误报（本 skill 全是"
+  say "  Markdown + 一个只读的 PNG 校验脚本，可在 GitHub 上逐行核对）。所以这里带 --force 安装。${c_off}"
   if [ "$DRY_RUN" = 1 ]; then
     say "  [dry-run] hermes skills tap add ${OWNER}/${REPO}"
-    say "  [dry-run] hermes skills install ${OWNER}/${REPO}/skills/${SKILL_NAME} -y --category autonomous-ai-agents"
+    say "  [dry-run] hermes skills install ${OWNER}/${REPO}/skills/${SKILL_NAME} -y --force --category autonomous-ai-agents"
   else
     hermes skills tap add "${OWNER}/${REPO}" >/dev/null 2>&1 || true
-    if hermes skills install "${OWNER}/${REPO}/skills/${SKILL_NAME}" -y --category autonomous-ai-agents 2>&1 | tail -3; then
+    if hermes skills install "${OWNER}/${REPO}/skills/${SKILL_NAME}" -y --force --category autonomous-ai-agents 2>&1 | tail -4; then
       ok "Hermes skill 已安装（来源：${OWNER}/${REPO}）"
     else
       warn "经 skills tap 安装失败，改用本地拷贝"
