@@ -170,8 +170,9 @@ macOS 那一列是本机实测过的，Windows 那一列按官方文档与 Power
 绑定关系都写在 `~/.hermes/handoffs/chatgpt-web-state.md`（Windows：`%USERPROFILE%\.hermes\handoffs\`），
 下一个 agent 读它就能接着干。
 
-**更新怎么弄？** 重跑安装脚本即可（它会 `git pull` 并重装 skill）；
-Hermes 侧也可以直接 `hermes skills update`。
+**更新怎么弄？** 重跑安装脚本即可（它会 `git pull` 并重装 skill）。Hermes 侧也可以走官方路径，
+**已实测可用**：`hermes skills check`（报告 `update_available`）→ `hermes skills update`
+（把新增的引用文件、脚本一起装上）。
 
 ---
 
