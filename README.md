@@ -1,11 +1,12 @@
 # hermes-chatgpt-web
 
-> 让你的本机 agent 把**网页版 ChatGPT** 当"大脑"用：它出方案、做独立审查、出图出视频；
-> 本机 agent 负责动手执行、取回产物、逐条核验。你已经在付的钱，别再闲置。
+> 给 **Hermes** 用的一套技能：把**网页版 ChatGPT** 当"大脑"——它出方案、做独立审查、出图出视频；
+> Hermes 负责动手执行、取回产物、逐条核验。你已经在付的钱，别再闲置。
 
 [![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Windows%20%7C%20Linux-lightgrey)](#一句话部署)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Skill](https://img.shields.io/badge/agent%20skill-chatgpt--web--planning-blue)](#仓库里有什么)
+[![Agent](https://img.shields.io/badge/agent-Hermes-6E56CF)](#一句话部署)
+[![Skill](https://img.shields.io/badge/skill-chatgpt--web--planning-blue)](#仓库里有什么)
 
 ---
 
@@ -23,13 +24,17 @@ curl -fsSL https://raw.githubusercontent.com/d2dmh/hermes-chatgpt-web/main/insta
 irm https://raw.githubusercontent.com/d2dmh/hermes-chatgpt-web/main/install.ps1 | iex
 ```
 
-**不想碰终端**：把下面这一行原样发给你的 agent（Hermes 或 Codex 都行）——
+**不想碰终端**：把下面这一行原样发给你的 **Hermes**——
 
 ```text
-帮我装 https://github.com/d2dmh/hermes-chatgpt-web ：读它的 README，按里面的说明把 skill 装进我的 agent，
-按 skill 里的 references/bridge-setup.md 把桥（c2c）装好并完成首次接入，全程你自己做，
+帮我装 https://github.com/d2dmh/hermes-chatgpt-web ：读它的 README，按里面的说明把 skill 装进你自己，
+再按 skill 里的 references/bridge-setup.md 把桥（c2c）装好并完成首次接入，全程你自己做，
 只有需要我登录 ChatGPT / Cloudflare 时才叫我，一次只给我一个动作。
 ```
+
+**前置条件（只有这两条）**：① 你已经有 **Hermes**；② 这个 Hermes **能控制浏览器**
+（通过 CDP 驱动一个普通 Chrome——整套协作全靠这双手，配法见
+[`cross-platform.md`](skills/chatgpt-web-planning/references/cross-platform.md)）。
 
 装完你就多了一句口令：**「让 GPT 看一下」「先让 GPT 出个方案」「让 GPT 审一下」「让 GPT 画张图」。**
 （装的过程会 clone 两个仓库、装 cloudflared、构建一次；大约 3–5 分钟。**不改动你已有的 skill**，
@@ -66,7 +71,7 @@ agent 照着做**。它一次就把"先核对数据 → 按研究背景/框架/�
 
 | 名词 | 是什么 | 在这里干什么 |
 |---|---|---|
-| **Hermes / Codex** | 你本机的编码/自动化 agent（能开终端、能点浏览器） | 负责执行：改文件、跑测试、取回产物 |
+| **Hermes** | 你本机的 agent（能开终端、能通过 CDP 点浏览器） | 负责执行：改文件、跑测试、点页面、取回产物 |
 | **skill** | 一份 Markdown 操作手册（`SKILL.md` + 参考文件 + 脚本），agent 开工前读它 | 把"老师傅的手艺"固化下来：流程、判据、坑 |
 | **MCP** | 模型与工具之间的标准接口 | 让网页端 ChatGPT 能调用你本机的工作区读取工具 |
 | **c2c 桥** | 一个第三方开源小工具（[codex-with-chatgpt](https://github.com/XiaoDuoYa/codex-with-chatgpt)，MIT） | 在本机起一个**只读** MCP 服务，并把它通过隧道暴露成一个网址 |
@@ -100,7 +105,7 @@ agent 照着做**。它一次就把"先核对数据 → 按研究背景/框架/�
 
 ## 装完之后：第一次怎么用
 
-1. 装之前先确认你的 agent 里至少有 **Hermes** 或 **Codex** 一个（教程见仓库顶部那句"丢给 agent"）。
+1. 装之前先确认：**Hermes 已装好、并且能控制浏览器**（见顶部"前置条件"）。
 2. 跑安装脚本（或把那句话丢给 agent）。
 3. **只有两步需要你亲自做**：在浏览器里登录 ChatGPT；如果你要用固定域名，再登录一次 Cloudflare。
 4. agent 会给你看一张 ✓ 清单，并让网页端**自己读**一个校验文件来验证——读回的值要和本地逐字符一致。
@@ -115,7 +120,7 @@ agent 照着做**。它一次就把"先核对数据 → 按研究背景/框架/�
 ```
 hermes-chatgpt-web/
 ├── install.sh / install.ps1          一句话部署的两半（macOS/Linux · Windows）
-├── skills/chatgpt-web-planning/      技能本体（Hermes 与 Codex 通用同一个目录）
+├── skills/chatgpt-web-planning/      技能本体（装进 Hermes 的 skills 目录）
 │   ├── SKILL.md                      流程、判据、口令触发、坑表
 │   ├── references/
 │   │   ├── bridge-setup.md           首次接入：装桥 → 建连接器 → 配对 → 验证（给 agent 读）
@@ -163,17 +168,18 @@ macOS 那一列是本机实测过的，Windows 那一列按官方文档与 Power
 **安装时被 Hermes 的安全扫描拦了（被判 DANGEROUS）？** 这是**内容型误报**，安装脚本已经带 `--force` 处理。
 原因：这套文档逐字记录了 launchd/任务计划程序自启、`pnpm install`、base64 分块读字节这些命令，
 扫描器按关键词把它们当成"持久化 / 供应链 / 混淆"风险。本仓库里除了
-`scripts/verify_asset_origin.py`（只读一个 PNG 的字节，打印哈希与 C2PA 标识）**没有任何可执行代码**，
-你可以在 GitHub 上逐行核对；想更保守就只装 Codex 那一份（纯本地拷贝，不过扫描器）。
+`scripts/verify_asset_origin.py`（只读一个 PNG 的字节，打印哈希与 C2PA 标识）与
+`scripts/gen_helper.py`（浏览器辅助函数）**没有任何可执行代码**，你可以在 GitHub 上逐行核对。
 
-**agent 不被允许控制浏览器，装不下去了？** 完全不必卡住——首次接入的最后一步
-（在 ChatGPT 里建连接器 + 填配对码）**本来就是人可以手动做的**，不需要调试端口、不需要自动化权限，
-用你平时的浏览器点几下就行。步骤见
+**Hermes 不被允许控制浏览器，怎么办？** 先说清楚：**这套协作的"手"就是浏览器控制**
+（开新对话、打字、读回复全靠它），缺了它日常协作就只能人当打字员。但**首次接入的最后一步
+（在 ChatGPT 里建连接器 + 填配对码）本来就是人可以手动做的**，不需要调试端口、不需要自动化权限，
+用你平时的浏览器点几下就行——步骤见
 [`bridge-setup.md` 的"没有浏览器控制权限时：手动路径"](skills/chatgpt-web-planning/references/bridge-setup.md)。
-这也是 Windows 上最常见的卡点：策略禁止 agent 启动浏览器，但人手点三下就过去了，之后日常使用不再需要浏览器控制权。
+先用它把链路验通，再决定要不要把那双手（CDP 驱动 Chrome）配起来。
 
 **Windows 真的能用吗？** 已有一台**真机**验证：按上面的命令走完 → skill 装好可用、`c2c` 构建成功、
-`cloudflared` 装好、桥与公网连接健康检查通过（卡住的只有"agent 控制浏览器"这一步，走手动路径即可）。
+`cloudflared` 装好、桥与公网连接健康检查通过（卡住的是"agent 控制浏览器"这一步，用上面的手动路径绕过去）。
 尚未在真机验证的是"任务计划程序自启 / 剪贴板挂附件 / 缩略图替代方案"，用到时请把结果回填进
 [`cross-platform.md`](skills/chatgpt-web-planning/references/cross-platform.md)。
 
@@ -191,8 +197,8 @@ macOS 那一列是本机实测过的，Windows 那一列按官方文档与 Power
 
 - 桥（`c2c` / codex-with-chatgpt）是 [@XiaoDuoYa](https://github.com/XiaoDuoYa) 的开源项目（MIT）——
   本仓库只**调用**它，不包含它的源码；安装脚本会把它 clone 到你本机。
-  **注意**：桥的 skill 与文档是给 **Codex** 宿主写的；本仓库的 skill 是同一套能力在
-  **Hermes** 宿主上的实现，并补了跨平台与判据。
+  **注意**：上游的 skill 与文档是给别的宿主写的；本仓库的 skill 是同一套能力在
+  **Hermes** 上的实现，只保证 Hermes +（能用 CDP 控制浏览器的）Chrome 这条路，并补了跨平台与判据。
 - 本仓库内容以 MIT 许可发布，见 [LICENSE](LICENSE)。
 - 文中的实测数字（速度、字节数、几轮通过）都来自一台 Apple M5 / 16GB / macOS 的笔记本，
   配合中国网络环境（家用宽带 + 本地代理）。你的机器上不会完全一样，**但判据是一样的**。

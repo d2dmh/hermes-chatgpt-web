@@ -20,7 +20,6 @@
 | 用途 | macOS | Windows |
 |---|---|---|
 | Hermes 家目录 | `~/.hermes` | `%USERPROFILE%\.hermes` |
-| Codex 家目录 | `~/.codex`（或 `$CODEX_HOME`） | `%USERPROFILE%\.codex`（或 `%CODEX_HOME%`） |
 | c2c 状态目录（别丢） | `~/Library/Application Support/codex-with-chatgpt` | `%LOCALAPPDATA%\codex-with-chatgpt` |
 | 专用浏览器配置目录 | `~/.hermes/browser-profiles/hermes-chatgpt` | `%USERPROFILE%\.hermes\browser-profiles\hermes-chatgpt` |
 | Chrome 可执行文件 | `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome` | `%ProgramFiles%\Google\Chrome\Application\chrome.exe` |

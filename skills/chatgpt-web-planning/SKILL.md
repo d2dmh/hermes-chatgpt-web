@@ -20,7 +20,9 @@ metadata:
 以及**本 skill 里的流程与判据**。桥怎么装见 `references/bridge-setup.md`；
 两个系统的差异见 `references/cross-platform.md`。
 
-本 skill 同时适用于 Hermes 与 Codex 两种宿主：流程一致，差别只在命令入口与浏览器能力（见下节表格）。
+本 skill 是给 **Hermes** 用的：流程、判据、坑表都假定你有一双能操作浏览器的手
+（`browser_exec` + CDP，见下节）。没有浏览器控制权时只有"首次接入"能靠手动路径完成，
+日常协作仍然需要浏览器控制——这不是可选项。
 
 ## When to Use（触发条件）
 
@@ -34,10 +36,10 @@ metadata:
 
 ## 入口与环境
 
-| 宿主 | 命令入口 | 浏览器能力 |
-|---|---|---|
-| Hermes | `node <c2c检出目录>/bin/c2c.js <cmd> -w <workspace> --json` | `browser_exec`：`js()` / `cdp()` / `click_at_xy()` / `switch_tab()` / `capture_screenshot()` |
-| Codex | 同一入口（全局链接后可写 `c2c <cmd>`） | 内置浏览器 `iab`（见 c2c 检出目录里的 `skill/SKILL.md`） |
+- **命令入口**：`node <c2c检出目录>/bin/c2c.js <cmd> -w <workspace> --json`
+- **浏览器能力**：Hermes 的 `browser_exec` —— `js()` / `cdp()` / `click_at_xy()` /
+  `switch_tab()` / `capture_screenshot()`；它接的是一个**原生启动**的 Chrome
+  （独立 user-data-dir + `--remote-debugging-port=<PORT>`，配置见 `references/bridge-setup.md`）。
 
 例外：`c2c record` **不接受 `--json`**，它只回一行中文确认。
 机器级命令（`update-check`、`sandbox-allow`、`prefs`、`tunnel login`）**不要带 `-w`**。
@@ -60,7 +62,7 @@ metadata:
    **doctor 的连接器记账会漂移**：它比较的是自己记录的地址，第一次 doctor 把记录刷成新地址后，
    第二次就会报 `needed:false`，哪怕 ChatGPT 上的连接器仍指着已死的旧地址。连接器的真实地址以
    ChatGPT「管理」面板里显示的 URL 为准，或用一次真实的 `workspace_info` 调用验证——不要只看 doctor 结论。
-2. 只在**本任务自己的对话**里工作（不要动用户 Codex 侧的对话与 `c2c session`），
+2. 只在**本任务自己的对话**里工作（不要动 `c2c session` 里其它任务的记录），
    且**每个新任务开一个全新对话**——规则见「会话管理」。
 3. 发一条短任务说明：目标、范围、限制、成功标准；明确要求它用指定连接器自己读文件，
    **不接受任何人粘贴文件内容**。范围默认收窄：只新建本次任务自己的目录与文件，
@@ -276,8 +278,7 @@ DOM 里没有上一轮的消息。不放心就直接点侧边栏「新聊天」�
 | 点了下载按钮但下载目录没有新文件 | 该控件走系统保存对话框，自动化环境下不落盘 | 不要反复重试点击；改从页面里 `fetch` 图片/文件字节再分块读回（`references/media-export.md`） |
 | 附件粘贴后发送按钮是灰的 | 文件还在后台上传 | 轮询到 `aria-label==='发送'` 的按钮 `disabled === false` 再点发送 |
 | agent 反应像卡住，其实它还在读文件 | 长回复分段流式写 | 用"最后一段长度稳定"判完成，不要按"你说："计数 |
-| 侧边栏「剩余 3% 使用量 / 5 小时窗口」徽章 | 那是 **Codex 的额度**，与网页 ChatGPT 无关 | 不要拿它向用户报警，也不要因此节制生图/对话 |
-| agent 启动专用浏览器被拒（`blocked by policy`）/ 宿主没有浏览器控制接口 | 首次接入的最后一步需要"点页面"，策略受限环境给不了这个能力 | **不要卡住、也不要判定安装失败**：改走 `references/bridge-setup.md` 里的**手动路径**——不需要调试端口、不需要自动化权限，人用自己的浏览器点几下就完事，只有两处必须人工 |
+| agent 启动专用浏览器被拒（`blocked by policy`）/ 宿主没有浏览器控制接口 | 首次接入的最后一步需要"点页面"，策略受限环境给不了这个能力 | **首次接入**改走 `references/bridge-setup.md` 里的**手动路径**（不需要调试端口、不需要自动化权限，人用自己的浏览器点几下）。但要清楚：整套协作的"手"就是浏览器控制——日常协作仍然需要它，缺了就退回"人当打字员" |
 | 本地模型/本地端点请求卡死 | 系统代理把 `127.0.0.1` 的请求也劫走 | 设 `NO_PROXY=127.0.0.1,localhost,::1` 并在脚本里 unset 代理变量 |
 
 ## Verification

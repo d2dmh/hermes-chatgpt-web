@@ -4,14 +4,17 @@
     一句话装（PowerShell）：
       irm https://raw.githubusercontent.com/d2dmh/hermes-chatgpt-web/main/install.ps1 | iex
 
-  干什么：① 把 skill 装进你已有的 agent（Hermes 走 skills tap，Codex 走 skills 目录）
+  干什么：① 把 skill 装进你的 Hermes（走 skills tap，之后 hermes skills update 就能更新）
           ② 把「只读 MCP 桥」（c2c）clone + 构建好 ③ 打印下一步（就剩登录 ChatGPT 了）
   不干什么：不替你登录、不碰你已有的 skill（同名会先备份）、不索取任何凭据。
 
+  前置：Hermes 已安装，且**这个 Hermes 能控制浏览器**（通过 CDP 驱动一个普通 Chrome，
+        见 skill 的 references/cross-platform.md）——这是整套协作的手，不能少。
+
   用法（想传参数就别用 irm，直接下载后跑）：
-    .\install.ps1 -Workspace "$env:USERPROFILE\codex"
+    .\install.ps1 -Workspace "$env:USERPROFILE\my-project"
     .\install.ps1 -SkillsOnly        # 只装 skill，不动桥
-    .\install.ps1 -NoHermes -NoCodex # 只装桥
+    .\install.ps1 -NoHermes          # 只装桥
     .\install.ps1 -DryRun            # 只打印将要执行的动作
 #>
 [CmdletBinding()]
@@ -21,10 +24,8 @@ param(
   [string]$Repo  = "hermes-chatgpt-web",
   [string]$RepoDir = "",
   [string]$C2cDir = "",
-  [string]$CodexHome = "",
   [switch]$SkillsOnly,
   [switch]$NoHermes,
-  [switch]$NoCodex,
   [switch]$DryRun
 )
 
@@ -34,7 +35,6 @@ $RepoUrl   = "https://github.com/$Owner/$Repo.git"
 $BridgeUrl = "https://github.com/XiaoDuoYa/codex-with-chatgpt.git"
 $RepoDir   = if ($RepoDir) { $RepoDir } else { Join-Path $HOME $Repo }
 $C2cDir    = if ($C2cDir)  { $C2cDir }  else { Join-Path $HOME "codex-with-chatgpt" }
-$CodexHome = if ($CodexHome) { $CodexHome } else { Join-Path $HOME ".codex" }
 $DoBridge  = -not $SkillsOnly
 
 function Say  { param($m) Write-Host $m }
@@ -71,8 +71,7 @@ if ($node) {
 if (-not $DoBridge) { Warn "跳过桥的安装；装好 Node >= 20 后重跑本脚本即可" }
 
 if (-not $Workspace) {
-  $candidate = Join-Path $HOME "codex"
-  $Workspace = if (Test-Path $candidate) { $candidate } else { (Get-Location).Path }
+  $Workspace = (Get-Location).Path
 }
 if (-not (Test-Path $Workspace)) { Fail "工作目录不存在：$Workspace" }
 Ok "工作目录：$Workspace"
@@ -131,20 +130,6 @@ if (-not $NoHermes) {
   }
 }
 
-if (-not $NoCodex) {
-  if (Test-Path $CodexHome) {
-    Step "1b 装进 Codex（$CodexHome\skills）"
-    $dst = Join-Path $CodexHome "skills\$SkillName"
-    Run New-Item -ItemType Directory -Force -Path (Split-Path $dst) | Out-Null
-    Backup-IfDiffers -Dst $dst
-    if ((Test-Path $dst) -and -not $DryRun) { Remove-Item -Recurse -Force $dst }
-    Run Copy-Item -Recurse -Force (Join-Path $RepoDir "skills\$SkillName") $dst
-    Ok "Codex skill -> $dst"
-  } else {
-    Warn "没找到 $CodexHome，跳过 Codex 侧（要用 Codex 就先装它，或加 -CodexHome 后重跑）"
-  }
-}
-
 # ---------------------------------------------------------------- 2. 桥
 if ($DoBridge) {
   Step "2/4 装桥（只读 MCP 服务 + 隧道）"
@@ -173,7 +158,7 @@ if ($DoBridge) {
 Step "3/4 下一步（只剩登录 ChatGPT 了）"
 @"
 
-  把下面这段原样发给你的 agent（Hermes 或 Codex 都行）：
+  把下面这段原样发给你的 Hermes：
 
     我刚装好了 hermes-chatgpt-web。请按 skill「chatgpt-web-planning」里的
     references/bridge-setup.md 完成首次接入：

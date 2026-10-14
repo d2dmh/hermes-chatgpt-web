@@ -4,17 +4,20 @@
 #   一句话装：
 #     curl -fsSL https://raw.githubusercontent.com/d2dmh/hermes-chatgpt-web/main/install.sh | bash
 #
-# 干什么：① 把 skill 装进你已有的 agent（Hermes 走 skills tap，Codex 走 skills 目录）
+# 干什么：① 把 skill 装进你的 Hermes（走 skills tap，之后 hermes skills update 就能更新）
 #         ② 把「只读 MCP 桥」（c2c）clone + 构建好 ③ 打印下一步（就剩登录 ChatGPT 了）
 # 不干什么：不替你登录、不碰你已有的 skill（同名会先备份）、不索取任何凭据。
 #
+# 前置：Hermes 已安装，且**这个 Hermes 能控制浏览器**（通过 CDP 驱动一个普通 Chrome，
+#       见 skill 的 references/cross-platform.md）——这是整套协作的手，不能少。
+#
 # 常用参数：
-#   --workspace <路径>   要被网页端读的工程目录（默认：$HOME/codex，不存在则用当前目录）
+#   --workspace <路径>   要被网页端读的工程目录（默认：当前目录）
 #   --skills-only        只装 skill，不动桥
 #   --no-bridge          同上
-#   --no-hermes / --no-codex   跳过对应宿主
+#   --no-hermes          跳过 skill 那一步，只装桥
 #   --dry-run            只打印将要执行的动作
-# 环境变量覆盖：HERMES_HOME / CODEX_HOME / C2C_DIR / REPO_DIR
+# 环境变量覆盖：HERMES_HOME / C2C_DIR / REPO_DIR
 set -euo pipefail
 
 OWNER="d2dmh"
@@ -29,7 +32,6 @@ C2C_DIR="${C2C_DIR:-$HOME/codex-with-chatgpt}"
 WORKSPACE=""
 DO_BRIDGE=1
 DO_HERMES=1
-DO_CODEX=1
 DRY_RUN=0
 
 c_ok=$'\033[32m'; c_warn=$'\033[33m'; c_err=$'\033[31m'; c_dim=$'\033[2m'; c_off=$'\033[0m'
@@ -45,7 +47,6 @@ while [ $# -gt 0 ]; do
     --workspace) WORKSPACE="${2:-}"; shift 2 ;;
     --skills-only|--no-bridge) DO_BRIDGE=0; shift ;;
     --no-hermes) DO_HERMES=0; shift ;;
-    --no-codex)  DO_CODEX=0; shift ;;
     --dry-run)   DRY_RUN=1; shift ;;
     -h|--help)   sed -n '2,20p' "$0"; exit 0 ;;
     *) die "不认识的参数：$1（--help 看用法）" ;;
@@ -76,7 +77,7 @@ fi
 [ "$DO_BRIDGE" = 1 ] || warn "跳过桥的安装；装好 Node ≥ 20 后重跑本脚本即可"
 
 if [ -z "$WORKSPACE" ]; then
-  if [ -d "$HOME/codex" ]; then WORKSPACE="$HOME/codex"; else WORKSPACE="$PWD"; fi
+  WORKSPACE="$PWD"
 fi
 [ -d "$WORKSPACE" ] || die "工作目录不存在：$WORKSPACE"
 ok "工作目录：$WORKSPACE"
@@ -91,15 +92,6 @@ backup_if_differs() {  # $1 = 目标目录
   local bak="${dst}.bak-$(date +%Y%m%d%H%M%S)"
   warn "已存在的 $SKILL_NAME 与本次安装的不同，先备份到：$bak"
   run mv "$dst" "$bak"
-}
-
-install_for_codex() {
-  local dst="$CODEX_HOME/skills/$SKILL_NAME"
-  mkdir -p "$CODEX_HOME/skills"
-  backup_if_differs "$dst"
-  run rm -rf "$dst"
-  run cp -R "$REPO_DIR/skills/$SKILL_NAME" "$dst"
-  ok "Codex skill → $dst"
 }
 
 step "1/4 取回 skill 源码"
@@ -133,16 +125,6 @@ else
   [ "$DO_HERMES" = 1 ] && warn "没找到 hermes 命令（想装 Hermes：https://hermes-agent.nousresearch.com/docs 里的安装脚本）"
 fi
 
-if [ "$DO_CODEX" = 1 ]; then
-  CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
-  if [ -d "$CODEX_HOME" ]; then
-    step "1b 装进 Codex（$CODEX_HOME/skills）"
-    install_for_codex
-  else
-    warn "没找到 $CODEX_HOME，跳过 Codex 侧（要用 Codex 就先装它，或设 CODEX_HOME 后重跑）"
-  fi
-fi
-
 # ---------------------------------------------------------------- 2. 桥
 if [ "$DO_BRIDGE" = 1 ]; then
   step "2/4 装桥（只读 MCP 服务 + 隧道）"
@@ -174,7 +156,7 @@ fi
 step "3/4 下一步（只剩登录 ChatGPT 了）"
 cat <<EOF
 
-  把下面这段原样发给你的 agent（Hermes 或 Codex 都行）：
+  把下面这段原样发给你的 Hermes：
 
     我刚装好了 hermes-chatgpt-web。请按 skill「chatgpt-web-planning」里的
     references/bridge-setup.md 完成首次接入：

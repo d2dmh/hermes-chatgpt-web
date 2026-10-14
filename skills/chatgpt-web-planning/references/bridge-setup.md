@@ -34,7 +34,7 @@
 ### 方式 A（推荐给人看的一句话）：把下面这段整个丢给你的 agent
 
 ```text
-请帮我完整安装并配置 Codex with ChatGPT（c2c 桥），全程自动，我不懂技术：
+请帮我完整安装并配置 c2c 桥（上游项目名 Codex with ChatGPT），全程自动，我不懂技术：
 
 1. 环境自检：需要 git 和 Node.js ≥ 20，缺什么自己装（macOS 用 Homebrew，Windows 用 winget），
    同时装好 cloudflared。
@@ -111,8 +111,6 @@ Hermes 的环境变量文件（默认在 `~/.hermes/` 内，文件名由 `$HERME
 ```bash
 AGENT_BROWSER_PROFILE=<你的 home 目录>/.hermes/browser-profiles/hermes-chatgpt
 ```
-
-Codex 宿主用内置浏览器（`iab`），不需要这一节；照 c2c 检出目录里的 `skill/SKILL.md` 走。
 
 ---
 
@@ -227,9 +225,9 @@ node <c2c检出目录>/bin/c2c.js doctor -w <workspace> --json     # 期望 repa
 7. **收尾**：`c2c doctor -w <workspace> --json`（期望 `repairs: []`），
    然后把绑定关系写进状态文件（见本文件最后一节）。
 
-> 想让它变成"以后全自动"（agent 自己开浏览器、自己点页面），需要一个允许浏览器控制的环境：
-> Hermes 侧是指向专用浏览器调试端口的 `browser_exec`（见第 2 步），Codex 侧是内置浏览器 `iab`。
-> 那属于便利升级，**不是跑通的前提**——手动路径走完，链路就通了。
+> 想让日常协作也全自动（agent 自己开浏览器、自己点页面、自己读回复），就需要 Hermes 能控制浏览器：
+> 那就是第 2 步配好的 `browser_exec` + 专用 Chrome 调试端口。**这是整套协作的手**——
+> 手动路径只解决"首次接入"，不解决日常使用。
 
 ## 5. 可选：固定地址 + 开机自启（做一次，之后基本不用管）
 
@@ -247,6 +245,6 @@ node <c2c检出目录>/bin/c2c.js doctor -w <workspace> --json     # 期望 repa
 （Windows `%USERPROFILE%\.hermes\handoffs\chatgpt-web-state.md`），至少包含：
 
 - 绑定关系：工作区路径、`workspaceName`、连接器名、隧道模式与地址、Hermes 专用对话 URL
-- 接入方式：浏览器 profile 目录 + 调试端口 + 启动命令；Hermes/Codex 侧的配置改动
+- 接入方式：浏览器 profile 目录 + 调试端口 + 启动命令；Hermes 侧的配置改动
 - 验证结论：`doctor` 输出要点 + 校验文件读到的那一行
 - 坑与处置：本次实际踩到的（现象 → 原因 → 怎么办）
