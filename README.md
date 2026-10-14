@@ -166,6 +166,17 @@ macOS 那一列是本机实测过的，Windows 那一列按官方文档与 Power
 `scripts/verify_asset_origin.py`（只读一个 PNG 的字节，打印哈希与 C2PA 标识）**没有任何可执行代码**，
 你可以在 GitHub 上逐行核对；想更保守就只装 Codex 那一份（纯本地拷贝，不过扫描器）。
 
+**agent 不被允许控制浏览器，装不下去了？** 完全不必卡住——首次接入的最后一步
+（在 ChatGPT 里建连接器 + 填配对码）**本来就是人可以手动做的**，不需要调试端口、不需要自动化权限，
+用你平时的浏览器点几下就行。步骤见
+[`bridge-setup.md` 的"没有浏览器控制权限时：手动路径"](skills/chatgpt-web-planning/references/bridge-setup.md)。
+这也是 Windows 上最常见的卡点：策略禁止 agent 启动浏览器，但人手点三下就过去了，之后日常使用不再需要浏览器控制权。
+
+**Windows 真的能用吗？** 已有一台**真机**验证：按上面的命令走完 → skill 装好可用、`c2c` 构建成功、
+`cloudflared` 装好、桥与公网连接健康检查通过（卡住的只有"agent 控制浏览器"这一步，走手动路径即可）。
+尚未在真机验证的是"任务计划程序自启 / 剪贴板挂附件 / 缩略图替代方案"，用到时请把结果回填进
+[`cross-platform.md`](skills/chatgpt-web-planning/references/cross-platform.md)。
+
 **换机器 / 换工作区会怎样？** 换工作区 = 新连接器（一个工作区一个）；换机器要重做一次首次接入。
 绑定关系都写在 `~/.hermes/handoffs/chatgpt-web-state.md`（Windows：`%USERPROFILE%\.hermes\handoffs\`），
 下一个 agent 读它就能接着干。

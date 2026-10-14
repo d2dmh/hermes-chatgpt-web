@@ -183,6 +183,54 @@ node <c2c检出目录>/bin/c2c.js doctor -w <workspace> --json     # 期望 repa
 
 ---
 
+## 没有浏览器控制权限时：手动路径（Windows / 策略受限环境常见）
+
+**判据**：agent 启动专用浏览器被拒（`blocked by policy`），或宿主根本没有浏览器控制接口。
+**不要卡在这里，也不要因此判定安装失败**——首次接入里只有两件事必须人工，其余命令 agent 都能跑。
+
+关键认识：**手动路径不需要调试端口、不需要专用浏览器配置、不需要任何自动化权限**。
+用你平时那个浏览器（Edge / Chrome 都行）点几下就完事。做完这一次，之后日常使用不需要浏览器控制权。
+
+1. **关掉自动配置**（否则它会一直尝试开浏览器）：`c2c prefs set --setup-mode manual --json`
+2. **人工一次**：用你的浏览器打开 `https://chatgpt.com/#settings/Security`，打开「开发人员模式」。
+   完成后 agent 记一下：`c2c prefs set --developer-mode --json`
+3. **agent 取两个值**（不会生成配对码，安全）：
+   `c2c start -w <workspace> --json` → 读 `mcpUrl` 与 `connectorName`
+   （也可以用 `c2c doctor -w <workspace> --json` 看 `chatgptRepair.mcpUrl`）
+4. **人工**：打开
+   `https://chatgpt.com/plugins#settings/Connectors?create-connector=true`，建一个连接器：
+   - 名称 = `connectorName`（**一个工作区一个**，绝不要动别的连接器）
+   - Server URL = `mcpUrl`
+   - 认证 = OAuth
+   - 提交后再点「连接 / Connect」
+5. **到授权页那一刻，agent 立刻取码**：`c2c pair -w <workspace> --json`
+   → 人工把这一串一次性配对码填进页面、点 Connect。
+   ⚠️ 授权页**只能提交一次**、码约 5 分钟过期；别改用脚本写 `input.value` 提交
+   （会把一次性请求消耗掉却不带码，之后只能删连接器重建）。
+6. **验证**（这一步不可跳）：
+   - agent 在工作区根目录造一个校验文件，内容带随机串：
+     ```bash
+     printf 'Verification: %s\n' "$(openssl rand -hex 8)" > <workspace>/c2c-hello.txt
+     ```
+     Windows PowerShell：
+     ```powershell
+     "Verification: " + (node -e "console.log(require('crypto').randomBytes(8).toString('hex'))") |
+       Set-Content -Path <workspace>\c2c-hello.txt -Encoding ascii
+     ```
+   - **人工**在 ChatGPT 里**开一个全新对话**，把下面这句发出去（人工转述它的回答也可以，
+     但读取必须由它自己用连接器完成，不接受粘贴）：
+     ```
+     用「<connectorName>」这个连接器：先调用 workspace_info，再读工作区根目录下的
+     c2c-hello.txt，把 workspace 名字和文件里的 Verification 值原样回给我。
+     ```
+   - 比对：workspace 名 = `workspaceName`；Verification 值与本机文件**逐字符一致**。
+7. **收尾**：`c2c doctor -w <workspace> --json`（期望 `repairs: []`），
+   然后把绑定关系写进状态文件（见本文件最后一节）。
+
+> 想让它变成"以后全自动"（agent 自己开浏览器、自己点页面），需要一个允许浏览器控制的环境：
+> Hermes 侧是指向专用浏览器调试端口的 `browser_exec`（见第 2 步），Codex 侧是内置浏览器 `iab`。
+> 那属于便利升级，**不是跑通的前提**——手动路径走完，链路就通了。
+
 ## 5. 可选：固定地址 + 开机自启（做一次，之后基本不用管）
 
 - **固定地址**：`c2c tunnel choose --mode named`（见第 3 步）。之后重启只跑 `doctor`（`namedRepair`），
