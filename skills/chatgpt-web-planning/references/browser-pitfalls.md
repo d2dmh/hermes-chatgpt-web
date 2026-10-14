@@ -39,6 +39,10 @@
   4. attach 出 `sessionId`，对每个字符发一次
      `cdp("Input.dispatchKeyEvent", session_id=sid, type="keyDown", text=ch, unmodifiedText=ch)`
      加一次 `type="keyUp"`（**中英文都走这条**，别退回 `insertText`）
+- **点多次仍不聚焦时，用 JS 强行聚焦**：表现为 `activeElement` 不是 contenteditable，
+  逐字符真键只进 DOM 不进 React——**文字在、发送按钮不渲染**。此时用
+  JS `focus()` + `document.createRange()` 全选 + 一次 Backspace 清空，再逐字符真键，发送按钮随即出现。
+  这条顺序已封装在 `scripts/gen_helper.py` 的 `focus_composer()` / `type_and_send()` 里，直接用即可。
 - **必须用 `form div[contenteditable="true"]` 精确定位**，绝不用 `div[contenteditable]`：
   长会话里**每段提示词／写作块自己也是 `contenteditable`**，
   `querySelector('div[contenteditable]')` 会命中页面里第一个可编辑块（往往是历史消息里的提示词块）。

@@ -122,8 +122,11 @@ hermes-chatgpt-web/
 │   │   ├── cross-platform.md         macOS / Windows 差异对照 + 开机自启配方
 │   │   ├── browser-pitfalls.md       浏览器操作坑：输入法、坐标、多标签、发送判据
 │   │   ├── media-export.md           取回它生成的图/视频/PDF 并验真（C2PA）
+│   │   ├── slide-image-pipeline.md   整页生图流水线（PPT 逐页一张图，十几页风格一致）
 │   │   └── uploading-files-to-web-chatgpt.md   把文件挂进输入框（含 Windows 做法）
-│   ├── scripts/verify_asset_origin.py  验真：字节数 / sha256 / 容器结构 / 出处签名
+│   ├── scripts/
+│   │   ├── verify_asset_origin.py    验真：字节数 / sha256 / 容器结构 / 出处签名
+│   │   └── gen_helper.py             生图流水线辅助函数（判完成 / 取字节 / 去重 / 命名计数器）
 │   └── templates/agent-runbook.md    给"别人的 agent"看的复现说明骨架
 └── docs/                             原理与实测记录（人读的）
 ```
