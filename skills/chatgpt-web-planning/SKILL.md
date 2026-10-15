@@ -1,7 +1,7 @@
 ---
 name: chatgpt-web-planning
 description: "Use when web ChatGPT plans, reviews, or generates media."
-version: 2.1.0
+version: 2.2.0
 author: d2dmh, Hermes Agent
 license: MIT
 platforms: [macos, windows, linux]
@@ -364,6 +364,12 @@ y 为负或明显更小的属于更早的消息。先按位置分批，再按哈
 - **空态新对话的输入框是 `<textarea>`，插入内容后才升级成 ProseMirror contenteditable**：
   所以发第一条消息前 `div[contenteditable]` 会返回空；`Input.insertText` 本身可用
   （React 一两秒后接管），但**点发送前必须查发送按钮的 `disabled`**。
+- **长提示词在全新对话里可以直接 `Input.insertText` 一把写完**：实测 500–700 字的中文提示词（生图提示词那一类）
+  一次写入，读回 `innerText.length` 与发送按钮 `disabled === false` 都正常，发送后照常出图；
+  逐字符真键是**长会话**里的保底手段，不是首选。判据始终是**发送按钮的 disabled 状态**（React 认得这份文本才会亮）。
+- **挂附件失败就止损**：合成的假粘贴会造出「上传未成功」的坏附件（见 `references/uploading-files-to-web-chatgpt.md` 的
+  "试过但不生效的做法"）。挂附件这一环**最多两轮**，仍不成就先把成品交给用户、说明审查待补——
+  实测那两轮里失败卡片会一直挂在那儿，继续纠缠只会把交付往后拖。
 - **MCP 端点回 530 而 `doctor` 报隧道正常**＝有个**僵尸 cloudflared**（`pgrep -fl cloudflared` 看启动日期是几天前的）。
   `pkill -f "cloudflared tunnel"` 再跑 `doctor` 拉起新进程，公网立刻恢复 401；**不要**因此删连接器重建。
 

@@ -11,6 +11,10 @@ ChatGPT 的输入框与文件输入都被前端框架接管，常规程序化赋
 - 用 `osascript` 走 System Events 发按键：本机没有辅助功能权限，报"不允许发送按键"。
 - 把**图片数据**放进剪贴板（`... as «class PNGf»`）再粘贴：输入框不认。
 - 多文件列表（剪贴板里放若干个 `POSIX file`）粘贴：不生效。
+- **在页面里自己造一个 `ClipboardEvent` 假粘贴**（`new File([blob], …)` + `dispatchEvent(new ClipboardEvent('paste', {clipboardData: dt}))`）：
+  看着"粘上去了"，实际会挂出一个名为随机串、状态是**「上传未成功」**的坏附件；
+  而且这张失败卡片**很难清掉**（`aria-label` 以「移除」开头的按钮点掉后仍可能残留/重出现）。
+  这条路只会白烧一轮——**挂附件只有"真剪贴板 + CDP paste"这一条**。
 
 ## 可用的做法：文件引用进剪贴板 + CDP 编辑命令 paste
 
