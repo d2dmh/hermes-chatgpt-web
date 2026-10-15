@@ -1,7 +1,7 @@
 ---
 name: chatgpt-web-planning
 description: "Use when web ChatGPT plans, reviews, or generates media."
-version: 2.2.0
+version: 2.2.1
 author: d2dmh, Hermes Agent
 license: MIT
 platforms: [macos, windows, linux]
@@ -152,6 +152,13 @@ metadata:
 **上一个对话**（实测：`location.href` 已是新的 `/c/<id>`，但 `document.title` 还是旧会话标题、
 DOM 里还是旧会话的消息）。发第一条消息**前**核对三件事：对话 id 变了、`document.title` 变了、
 DOM 里没有上一轮的消息。不放心就直接点侧边栏「新聊天」。
+
+**侧边栏收起时点「新聊天」会静默失败（实测）**：按 `aria-label === '新聊天'` 能取到元素，
+但它的 `getBoundingClientRect()` 是 **0×0**（隐藏模板），点它等于点 (0,0)，界面毫无变化，
+而输入框检查、发送按钮检查全都正常——**消息于是悄悄发进了上一个对话**（只能靠 `location.href`
+仍是旧 `/c/<id>`、DOM 里还有上一轮正文才发现）。做法：先点 `aria-label` 为「显示侧边栏」的按钮，
+或对候选元素按 `rect.width > 0` 过滤后再点；发送前必须复核两件事：`location.href` 变成新 id、
+DOM 里搜不到上一轮的正文。
 
 ## 素材取回与验真（要交付成品时读 `references/media-export.md`）
 
